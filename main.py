@@ -3,7 +3,7 @@
 # Dependencies: base Python library (tkinter, os)
 
 from tkinter import *
-import os
+import os, base64
 
 # ------------------------------------------------------------------------------
 
@@ -12,8 +12,9 @@ def main():
     root.title("Add/Edit Snippet - CudaText")
     
     # App icon
-    app_icon = os.path.join(os.path.dirname(__file__), 'res/app_ico.ico')
-    root.iconbitmap(app_icon)
+    app_ico_base64 = "iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAPklEQVR42mMYXODPAon/IEyGPEIBMZaQJkFYLUIQmY2O0eWp6wJsNmBiTHkUDrkxRpELhkMsUJ4SKc8LlAMAjSSh9Q+hN1gAAAAASUVORK5CYII="
+    # Прямое обращение к Tcl для нестандартной кастомизации виджета PhotoImage
+    root.tk.call('wm', 'iconphoto', root._w, PhotoImage(data = app_ico_base64))
     
     # Window dimensions: Width х Height + X-pos + Y-pos
     w = root.winfo_screenwidth() # current screen width
