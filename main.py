@@ -51,13 +51,29 @@ def main():
     
     # / LEFT ------------------------------------------------------------------/
 
+    # Scrollbars for a Listbox
+    scrollbar_y = Scrollbar(frame_left, width=12)
+    scrollbar_y.pack(side=RIGHT, fill=Y)
+    scrollbar_x = Scrollbar(frame_left, orient=HORIZONTAL, width=12)
+    scrollbar_x.pack(side=BOTTOM, fill=X)
+    
     # Snippets list
     list_snippet = Listbox(
         frame_left, 
         font=('Arial', 11),
+        yscrollcommand = scrollbar_y.set, 
+        xscrollcommand = scrollbar_x.set,
         width=20
     )
     list_snippet.pack(side=LEFT, fill=BOTH)
+    
+    # test data
+    for snippet in range(0, 100):
+        list_snippet.insert(END, 'Snippet_name_#' + str(snippet))
+    
+    # Linking scrollbars for a Listbox
+    scrollbar_y.config(command = list_snippet.yview)
+    scrollbar_x.config(command = list_snippet.xview)
     
     # / MIDDLE ----------------------------------------------------------------/
     
