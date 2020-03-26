@@ -30,19 +30,26 @@ def main():
     frame_left = LabelFrame(
         root,
         width=200,
-        text='Snippets:', 
+        text='Snippets list: ', 
         font=('Verdana', 11),
-        padx=5, pady=5
+        foreground='#FFD71C',
+        background='#333842',
+        padx=5, pady=5,
+        relief=FLAT
     )
     # MIDDLE Side
     frame_middle = Frame(
         root,
         width=300,
-        padx=5, pady=5
+        background='#333842',
+        padx=5, pady=5,
+        relief=FLAT
     )
     # RIGHT Side
     frame_right = Frame(
-        root
+        root,
+        background='#333842',
+        relief=FLAT
     )
 
     frame_left.pack(side=LEFT, fill=Y)
@@ -58,31 +65,41 @@ def main():
     scrollbar_x.pack(side=BOTTOM, fill=X)
     
     # Snippets list
-    list_snippet = Listbox(
+    listbox_snippet = Listbox(
         frame_left, 
+        width=20,
         font=('Arial', 11),
-        yscrollcommand = scrollbar_y.set, 
-        xscrollcommand = scrollbar_x.set,
-        width=20
+        yscrollcommand=scrollbar_y.set, 
+        xscrollcommand=scrollbar_x.set,
+        foreground='#94D7F8',
+        background='#16181D',
+        relief=FLAT
     )
-    list_snippet.pack(side=LEFT, fill=BOTH)
+    listbox_snippet.pack(side=LEFT, fill=BOTH)
     
-    # test data
-    for snippet in range(0, 100):
-        list_snippet.insert(END, 'Snippet_name_#' + str(snippet))
+    # --- test data
+    snippets = ['Item_#' + str(i) for i in range(1, 101)]
+    for snippet in snippets:
+        listbox_snippet.insert(END, 'Snippet_name_' + str(snippet))
+    # Count snippets
+    frame_left['text'] = frame_left['text'] + ' (' + str(len(snippets)) + ')'
+    # /--- test data
     
     # Linking scrollbars for a Listbox
-    scrollbar_y.config(command = list_snippet.yview)
-    scrollbar_x.config(command = list_snippet.xview)
+    scrollbar_y.config(command=listbox_snippet.yview)
+    scrollbar_x.config(command=listbox_snippet.xview)
     
     # / MIDDLE ----------------------------------------------------------------/
     
     # Buttons
     btn_edit = Button(
         frame_middle, 
-        text='Edit', 
+        text='Edit >>>', 
         width=10, 
-        font=('Verdana', 11) 
+        font=('Verdana', 11), 
+        foreground='#E5E5E5', 
+        background='#333842', 
+        relief=GROOVE 
     )
     btn_edit.pack(side=TOP, pady=20)
 
@@ -90,61 +107,89 @@ def main():
         frame_middle, 
         text='Help?', 
         width=10, 
-        font=('Verdana', 11) 
+        font=('Verdana', 11), 
+        foreground='#E5E5E5', 
+        background='#333842', 
+        relief=GROOVE 
     )
     btn_help.pack(side=BOTTOM, pady=5)
     
     # / RIGHT -----------------------------------------------------------------/
 
-    l_top_frame = LabelFrame(
+    left_top_frame = LabelFrame(
         frame_right,
-        text='Name: ', 
+        text='Snippet name: ', 
         font=('Verdana', 12),
-        padx=5, pady=5
+        foreground='#FFD71C',
+        background='#333842',
+        padx=5, pady=5,
+        relief=FLAT
     )
-    l_top_frame.pack(side=TOP, fill=X)
+    left_top_frame.pack(side=TOP, fill=X)
 
     entry_snippet_name = Entry(
-        l_top_frame,
+        left_top_frame,
         font=('Arial', 12),
-        width=60
+        width=60,
+        foreground='#FF79C6',
+        background='#16181D',
+        insertbackground='#FF79C6',
+        relief=FLAT
     )
     entry_snippet_name.pack(fill=X)
 
-    l_mid_frame = LabelFrame(
+    left_mid_frame = LabelFrame(
         frame_right,
-        text='Code: ', 
-        font=('Arial', 12)
+        text='Snippet code: ', 
+        font=('Arial', 12), 
+        foreground='#FFD71C',
+        background='#333842',
+        padx=5, pady=5,
+        relief=FLAT
     )
-    l_mid_frame.pack(fill=X)
+    left_mid_frame.pack(fill=X)
 
     text_area = Text(
-        l_mid_frame,
+        left_mid_frame,
         width=60,
-        height=17,
-        font=('Consolas', 12)
+        height=16,
+        font=('Consolas', 12),
+        foreground='#F8F8F2',
+        background='#16181D',
+        insertbackground='#F8F8F2',
+        pady=5, padx=5,
+        wrap=WORD,
+        relief=FLAT
     )
     text_area.pack()
 
-    l_bottom_frame = Frame(
+    left_bottom_frame = Frame(
         frame_right,
-        padx=5, pady=5
+        background='#333842', 
+        padx=5, pady=5,
+        relief=FLAT
     )
-    l_bottom_frame.pack(fill=X)
+    left_bottom_frame.pack(fill=X)
 
     btn_new = Button(
-        l_bottom_frame, 
+        left_bottom_frame, 
         text='New', 
         width=15, 
-        font=('Verdana', 11) 
+        font=('Verdana', 11), 
+        foreground='#F1FA8C', 
+        background='#333842', 
+        relief=GROOVE 
     )
     btn_new.pack(side=LEFT)
 
     btn_save = Button(
-        l_bottom_frame, 
+        left_bottom_frame, 
         text='Save', 
         width=15, 
-        font=('Verdana', 11) 
+        font=('Verdana', 11), 
+        foreground='#3BDB84', 
+        background='#333842', 
+        relief=GROOVE 
     )
     btn_save.pack(side=RIGHT)
 
