@@ -11,6 +11,9 @@ def main():
     root = Tk()
     root.title("Add/Edit Snippet - CudaText")
     
+    # Insert spaces as tabulation
+    TAB_WIDTH = 4
+    
     # App icon
     app_ico_base64 = "iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAPklEQVR42mMYXODPAon/IEyGPEIBMZaQJkFYLUIQmY2O0eWp6wJsNmBiTHkUDrkxRpELhkMsUJ4SKc8LlAMAjSSh9Q+hN1gAAAAASUVORK5CYII="
     # Прямое обращение к Tcl для нестандартной кастомизации виджета PhotoImage
@@ -29,7 +32,7 @@ def main():
     # LEFT Side
     frame_left = LabelFrame(
         root,
-        width=200,
+        #width=200,
         text='Snippets list: ', 
         font=('Verdana', 11),
         foreground='#FFD71C',
@@ -40,7 +43,7 @@ def main():
     # MIDDLE Side
     frame_middle = Frame(
         root,
-        width=300,
+        #width=300,
         background='#333842',
         padx=5, pady=5,
         relief=FLAT
@@ -129,8 +132,8 @@ def main():
 
     entry_snippet_name = Entry(
         left_top_frame,
-        font=('Arial', 12),
         width=60,
+        font=('Arial', 12),
         foreground='#FF79C6',
         background='#16181D',
         insertbackground='#FF79C6',
@@ -162,6 +165,7 @@ def main():
         relief=FLAT
     )
     text_area.pack()
+    text_area.bind('<Tab>', lambda event: do_tab(event, widget=text_area, tab_width=TAB_WIDTH))
 
     left_bottom_frame = Frame(
         frame_right,
@@ -196,5 +200,15 @@ def main():
     # -------------------------------------------------------------------------/
     root.mainloop()
 
+# / FUNCTIONS -----------------------------------------------------------------/
 
-if __name__ == "__main__": main()
+def do_tab(event=None, widget=None, tab_width=4):
+    """Replacing tab chars with spaces"""
+    widget.insert("insert", " " * tab_width)
+    # return 'break' so that the default behavior doesn't happen
+    return 'break'
+
+
+
+if __name__ == "__main__":
+    main()
