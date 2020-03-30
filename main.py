@@ -11,6 +11,8 @@ def main():
     root = Tk()
     root.title("Add/Edit Snippet - CudaText")
     
+    # Directory for scan snippets
+    PATH_SNIPPETS = 'test_data/data/snippets/ma1ex.Html/'
     # Insert spaces as tabulation
     TAB_WIDTH = 4
     
@@ -81,12 +83,18 @@ def main():
     listbox_snippet.pack(side=LEFT, fill=BOTH)
     
     # --- test data
-    snippets = ['Item_#' + str(i) for i in range(1, 101)]
-    for snippet in snippets:
-        listbox_snippet.insert(END, 'Snippet_name_' + str(snippet))
+    #snippets = ['Item_#' + str(i) for i in range(1, 101)]
+    #for snippet in snippets:
+        #listbox_snippet.insert(END, 'Snippet_name_' + str(snippet))
+    # /--- test data
+    
+    snippets = scan_dir(PATH_SNIPPETS)
+    for key, value in snippets.items():
+        listbox_snippet.insert(END, key.replace('.synw-snippet', ''))
+    
     # Count snippets
     frame_left['text'] = frame_left['text'] + ' (' + str(len(snippets)) + ')'
-    # /--- test data
+    
     
     # Linking scrollbars for a Listbox
     scrollbar_y.config(command=listbox_snippet.yview)
@@ -202,8 +210,26 @@ def main():
 
 # / FUNCTIONS -----------------------------------------------------------------/
 
+def scan_dir(path = 'data/snippets/'):
+    """Scan snippets directory"""
+    
+    folders = []  # List dirs, subdirs and files
+    filtered = {}  # Snippet names without extension
+    
+    if os.path.exists(path) and os.path.isdir(path):
+        for i in os.walk(path):
+            folders.append(i)
+        
+        for files in folders[0][2]:
+            if files.endswith('.synw-snippet'):
+                filtered[files] = folders[0][0] + '/' + files
+    
+    return filtered
+
+
 def do_tab(event=None, widget=None, tab_width=4):
     """Replacing tab chars with spaces"""
+    
     widget.insert("insert", " " * tab_width)
     # return 'break' so that the default behavior doesn't happen
     return 'break'
