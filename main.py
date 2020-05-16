@@ -1,5 +1,6 @@
-
+import json
 import os
+import re
 import tkinter as tk
 
 
@@ -14,11 +15,11 @@ class MainFrame(tk.Frame):
         # App icon
         self.app_ico_base64 = "iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAPklEQVR42mMYXODPAon/IEyGPEIBMZaQJkFYLUIQmY2O0eWp6wJsNmBiTHkUDrkxRpELhkMsUJ4SKc8LlAMAjSSh9Q+hN1gAAAAASUVORK5CYII="
         self.tk.call('wm', 'iconphoto', root._w, tk.PhotoImage(data=self.app_ico_base64))
+        root.geometry('800x450+500+200')
+        root.resizable(False, False)
 
-        # Directory for scan snippets
-        self.PATH_SNIPPETS = 'test_data/data/snippets/ma1ex.Html/'
-        # Insert spaces as tabulation
-        self.TAB_WIDTH = 4
+        # App config
+        self.__config = self.load_config()
 
         # Widgets
         # --/--
@@ -51,13 +52,13 @@ class MainFrame(tk.Frame):
         frame_middle.pack(side=tk.LEFT, fill=tk.Y)
         frame_right.pack(side=tk.LEFT, fill=tk.BOTH)
 
-        # / LEFT ------------------------------------------------------------------/
+        # / LEFT --------------------------------------------------------------/
 
         # Scrollbars for a Listbox
         scrollbar_y = tk.Scrollbar(frame_left, width=12)
         scrollbar_y.pack(side=tk.RIGHT, fill=tk.Y)
         scrollbar_x = tk.Scrollbar(frame_left, orient=tk.HORIZONTAL, width=12)
-        scrollbar_x.pack(side=tk.BOTTOM, fill=tk.X)
+        # scrollbar_x.pack(side=tk.BOTTOM, fill=tk.X)
 
         # Snippets list
         listbox_snippet = tk.Listbox(
@@ -73,7 +74,7 @@ class MainFrame(tk.Frame):
         )
         listbox_snippet.pack(side=tk.LEFT, fill=tk.BOTH)
 
-        snippets = self.__scan_dir(self.PATH_SNIPPETS)
+        snippets = self.__scan_dir(self.__config.get('path_snippets'))
         for key, value in snippets.items():
             listbox_snippet.insert(tk.END, key.replace('.synw-snippet', ''))
 
@@ -84,7 +85,7 @@ class MainFrame(tk.Frame):
         scrollbar_y.config(command=listbox_snippet.yview)
         scrollbar_x.config(command=listbox_snippet.xview)
 
-        # / MIDDLE ----------------------------------------------------------------/
+        # / MIDDLE ------------------------------------------------------------/
 
         # Buttons
         btn_edit = tk.Button(
@@ -119,7 +120,7 @@ class MainFrame(tk.Frame):
         )
         btn_help.pack(side=tk.BOTTOM, pady=5)
 
-        # / RIGHT -----------------------------------------------------------------/
+        # / RIGHT -------------------------------------------------------------/
 
         left_top_frame = tk.LabelFrame(
             frame_right,
@@ -168,7 +169,7 @@ class MainFrame(tk.Frame):
         )
         text_area.pack()
         text_area.bind('<Tab>', lambda event: self.__do_tab(event, widget=text_area,
-                                                            tab_width=self.TAB_WIDTH))
+                                                            tab_width=self.__config.get('tab_width')))
 
         left_bottom_frame = tk.Frame(
             frame_right,
@@ -185,7 +186,9 @@ class MainFrame(tk.Frame):
             font=('Verdana', 11),
             foreground='#F1FA8C',
             background='#333842',
-            relief=tk.GROOVE
+            relief=tk.GROOVE,
+            command=lambda: self.__new_snippet(widget_name=entry_snippet_name,
+                                               widget_text=text_area)
         )
         btn_new.pack(side=tk.LEFT)
 
@@ -249,6 +252,13 @@ class MainFrame(tk.Frame):
             kwargs['text_widget'].insert(1.0, f_read)
             f.close()
 
+    def __new_snippet(self, widget_name=None, widget_text=None):
+        # start_data = widget_name.get()
+        # print(start_data)
+        widget_name.delete(0, tk.END)
+        widget_text.delete(1.0, tk.END)
+        widget_name.focus_set()
+
     def __do_tab(self, *args, **kwargs):
         """
         Replacing tab chars with spaces
@@ -264,6 +274,31 @@ class MainFrame(tk.Frame):
 
     def __open_help(self):
         Child(app_icon=self.app_ico_base64)
+
+    def load_config(self, file='config.json'):
+        """
+        Open and Read JSON App Config
+        :param file:
+        :return:
+        """
+
+        if os.path.exists(file) and os.path.isfile(file):
+            f = open(file, 'r', encoding='utf-8')
+            raw = f.read()
+            f.close()
+            parsed = re.sub(r'\n^\s*//.+$', '', raw, flags=re.MULTILINE)
+            # print(parsed)
+            return json.loads(parsed)
+
+            # with open(file, 'r', encoding='utf-8') as read_file:
+            # parsed = re.sub(r'\n^\s*//.+$', '', read_file, flags=re.MULTILINE)
+            # return json.load(read_file)
+        else:
+            # Defaul settings
+            return {
+                "path_snippets": ".",
+                "tab_width": 4
+            }
 
 
 class Child(tk.Toplevel):
@@ -290,8 +325,6 @@ class Child(tk.Toplevel):
 if __name__ == '__main__':
     root = tk.Tk()
     root.title('Add/Edit Snippet - CudaText')
-    root.geometry('800x450+500+200')
-    root.resizable(False, False)
     app = MainFrame(root)
     app.pack()
     root.mainloop()

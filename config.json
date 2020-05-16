@@ -1,0 +1,6 @@
+{
+    // Path to snippets
+    "path_snippets" : "test_data/data/snippets/ma1ex.Html",
+    // Width of tabulation
+    "tab_width" : 4
+}
