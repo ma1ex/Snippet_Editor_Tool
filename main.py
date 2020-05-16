@@ -20,6 +20,9 @@ class MainFrame(tk.Frame):
         # Insert spaces as tabulation
         self.TAB_WIDTH = 4
 
+        # Widgets
+        # --/--
+
         self.init_main()
 
     def init_main(self):
@@ -61,6 +64,7 @@ class MainFrame(tk.Frame):
             frame_left,
             width=20,
             font=('Arial', 11),
+            selectbackground='#643200',
             yscrollcommand=scrollbar_y.set,
             xscrollcommand=scrollbar_x.set,
             foreground='#94D7F8',
@@ -90,9 +94,18 @@ class MainFrame(tk.Frame):
             font=('Verdana', 11),
             foreground='#E5E5E5',
             background='#333842',
-            relief=tk.GROOVE
+            relief=tk.GROOVE,
+            command=lambda: self.__edit_snippet(widget=listbox_snippet,
+                                                dict_snippets=snippets,
+                                                entry_widget=entry_snippet_name,
+                                                text_widget=text_area)
         )
         btn_edit.pack(side=tk.TOP, pady=20)
+
+        # Editing selected snippet on double-click
+        listbox_snippet.bind('<Double-Button-1>', lambda event: self.__edit_snippet(
+            event, widget=listbox_snippet, dict_snippets=snippets,
+            entry_widget=entry_snippet_name, text_widget=text_area))
 
         btn_help = tk.Button(
             frame_middle,
@@ -154,7 +167,8 @@ class MainFrame(tk.Frame):
             relief=tk.FLAT
         )
         text_area.pack()
-        text_area.bind('<Tab>', lambda event: self.__do_tab(event, widget=text_area, tab_width=self.TAB_WIDTH))
+        text_area.bind('<Tab>', lambda event: self.__do_tab(event, widget=text_area,
+                                                            tab_width=self.TAB_WIDTH))
 
         left_bottom_frame = tk.Frame(
             frame_right,
@@ -206,10 +220,45 @@ class MainFrame(tk.Frame):
 
         return filtered
 
-    def __do_tab(self, event=None, widget=None, tab_width=4):
-        """Replacing tab chars with spaces"""
+    def __edit_snippet(self, *args, **kwargs):
+        """
+        Edit snippet
 
-        widget.insert("insert", " " * tab_width)
+        :param args: event=None
+        :param kwargs: widget=None, dict_snippets=None, entry_widget=None, text_widget=None
+        :return:
+        """
+
+        # Индекс выделенного пункта в Listbox - первое значение кортежа
+        index = kwargs['widget'].curselection()[0]
+
+        # Значение выделенного пункта в Listbox
+        name = kwargs['widget'].get(index)
+
+        # Поиск ключа в словаре, где значение - путь к файлу сниппета; None - если нету
+        snippet = kwargs['dict_snippets'].get(name + '.synw-snippet')
+
+        # Вставка имени редактируемого сниппета
+        kwargs['entry_widget'].delete(0, tk.END)
+        kwargs['entry_widget'].insert(0, name)
+        # Если файл существует, открываем на редактирование
+        if os.path.exists(snippet) and os.path.isfile(snippet):
+            f = open(snippet, 'r')
+            f_read = f.read()
+            kwargs['text_widget'].delete(1.0, tk.END)
+            kwargs['text_widget'].insert(1.0, f_read)
+            f.close()
+
+    def __do_tab(self, *args, **kwargs):
+        """
+        Replacing tab chars with spaces
+
+        :param args: event=None
+        :param kwargs: widget=None, tab_width=4
+        :return:
+        """
+
+        kwargs['widget'].insert("insert", " " * kwargs['tab_width'])
         # return 'break' so that the default behavior doesn't happen
         return 'break'
 
@@ -238,13 +287,6 @@ class Child(tk.Toplevel):
         self.focus_set()
 
 
-
-
-
-
-
-
-
 if __name__ == '__main__':
     root = tk.Tk()
     root.title('Add/Edit Snippet - CudaText')
@@ -252,6 +294,4 @@ if __name__ == '__main__':
     root.resizable(False, False)
     app = MainFrame(root)
     app.pack()
-
-
     root.mainloop()
