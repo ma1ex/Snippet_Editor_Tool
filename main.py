@@ -1,240 +1,257 @@
-# Snippet Editor Tool for CudaText Editor
 
-# Dependencies: base Python library (tkinter, os)
+import os
+import tkinter as tk
 
-from tkinter import *
-import os, base64
 
-# ------------------------------------------------------------------------------
+class MainFrame(tk.Frame):
+    """
+    Main Layout with Widgets
+    """
 
-def main():
-    root = Tk()
-    root.title("Add/Edit Snippet - CudaText")
-    
-    # Directory for scan snippets
-    PATH_SNIPPETS = 'test_data/data/snippets/ma1ex.Html/'
-    # Insert spaces as tabulation
-    TAB_WIDTH = 4
-    
-    # App icon
-    app_ico_base64 = "iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAPklEQVR42mMYXODPAon/IEyGPEIBMZaQJkFYLUIQmY2O0eWp6wJsNmBiTHkUDrkxRpELhkMsUJ4SKc8LlAMAjSSh9Q+hN1gAAAAASUVORK5CYII="
-    # Прямое обращение к Tcl для нестандартной кастомизации виджета PhotoImage
-    root.tk.call('wm', 'iconphoto', root._w, PhotoImage(data = app_ico_base64))
-    
-    # Window dimensions: Width х Height + X-pos + Y-pos
-    w = root.winfo_screenwidth() # current screen width
-    h = root.winfo_screenheight() # current screen height
-    w = w // 2 # screen center
-    h = h // 2 
-    w = w - 300 # offset fron the center
-    h = h - 300
-    root.geometry('800x450+{}+{}'.format(w, h))
-    root.resizable(False, False) # prevent window resizing
-    
-    # LEFT Side
-    frame_left = LabelFrame(
-        root,
-        #width=200,
-        text='Snippets list: ', 
-        font=('Verdana', 11),
-        foreground='#FFD71C',
-        background='#333842',
-        padx=5, pady=5,
-        relief=FLAT
-    )
-    # MIDDLE Side
-    frame_middle = Frame(
-        root,
-        #width=300,
-        background='#333842',
-        padx=5, pady=5,
-        relief=FLAT
-    )
-    # RIGHT Side
-    frame_right = Frame(
-        root,
-        background='#333842',
-        relief=FLAT
-    )
+    def __init__(self, root):
+        super().__init__(root)
 
-    frame_left.pack(side=LEFT, fill=Y)
-    frame_middle.pack(side=LEFT, fill=Y)
-    frame_right.pack(side=LEFT, fill=BOTH)
-    
-    # / LEFT ------------------------------------------------------------------/
+        # App icon
+        self.app_ico_base64 = "iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAPklEQVR42mMYXODPAon/IEyGPEIBMZaQJkFYLUIQmY2O0eWp6wJsNmBiTHkUDrkxRpELhkMsUJ4SKc8LlAMAjSSh9Q+hN1gAAAAASUVORK5CYII="
+        self.tk.call('wm', 'iconphoto', root._w, tk.PhotoImage(data=self.app_ico_base64))
 
-    # Scrollbars for a Listbox
-    scrollbar_y = Scrollbar(frame_left, width=12)
-    scrollbar_y.pack(side=RIGHT, fill=Y)
-    scrollbar_x = Scrollbar(frame_left, orient=HORIZONTAL, width=12)
-    scrollbar_x.pack(side=BOTTOM, fill=X)
-    
-    # Snippets list
-    listbox_snippet = Listbox(
-        frame_left, 
-        width=20,
-        font=('Arial', 11),
-        yscrollcommand=scrollbar_y.set, 
-        xscrollcommand=scrollbar_x.set,
-        foreground='#94D7F8',
-        background='#16181D',
-        relief=FLAT
-    )
-    listbox_snippet.pack(side=LEFT, fill=BOTH)
-    
-    # --- test data
-    #snippets = ['Item_#' + str(i) for i in range(1, 101)]
-    #for snippet in snippets:
-        #listbox_snippet.insert(END, 'Snippet_name_' + str(snippet))
-    # /--- test data
-    
-    snippets = scan_dir(PATH_SNIPPETS)
-    for key, value in snippets.items():
-        listbox_snippet.insert(END, key.replace('.synw-snippet', ''))
-    
-    # Count snippets
-    frame_left['text'] = frame_left['text'] + ' (' + str(len(snippets)) + ')'
-    
-    
-    # Linking scrollbars for a Listbox
-    scrollbar_y.config(command=listbox_snippet.yview)
-    scrollbar_x.config(command=listbox_snippet.xview)
-    
-    # / MIDDLE ----------------------------------------------------------------/
-    
-    # Buttons
-    btn_edit = Button(
-        frame_middle, 
-        text='Edit >>>', 
-        width=10, 
-        font=('Verdana', 11), 
-        foreground='#E5E5E5', 
-        background='#333842', 
-        relief=GROOVE 
-    )
-    btn_edit.pack(side=TOP, pady=20)
+        # Directory for scan snippets
+        self.PATH_SNIPPETS = 'test_data/data/snippets/ma1ex.Html/'
+        # Insert spaces as tabulation
+        self.TAB_WIDTH = 4
 
-    btn_help = Button(
-        frame_middle, 
-        text='Help?', 
-        width=10, 
-        font=('Verdana', 11), 
-        foreground='#E5E5E5', 
-        background='#333842', 
-        relief=GROOVE 
-    )
-    btn_help.pack(side=BOTTOM, pady=5)
-    
-    # / RIGHT -----------------------------------------------------------------/
+        self.init_main()
 
-    left_top_frame = LabelFrame(
-        frame_right,
-        text='Snippet name: ', 
-        font=('Verdana', 12),
-        foreground='#FFD71C',
-        background='#333842',
-        padx=5, pady=5,
-        relief=FLAT
-    )
-    left_top_frame.pack(side=TOP, fill=X)
+    def init_main(self):
+        # LEFT Side
+        frame_left = tk.LabelFrame(
+            text='Snippets list: ',
+            font=('Verdana', 11),
+            foreground='#FFD71C',
+            background='#333842',
+            padx=5, pady=5,
+            relief=tk.FLAT
+        )
+        # MIDDLE Side
+        frame_middle = tk.Frame(
+            background='#333842',
+            padx=5, pady=5,
+            relief=tk.FLAT
+        )
+        # RIGHT Side
+        frame_right = tk.Frame(
+            background='#333842',
+            relief=tk.FLAT
+        )
 
-    entry_snippet_name = Entry(
-        left_top_frame,
-        width=60,
-        font=('Arial', 12),
-        foreground='#FF79C6',
-        background='#16181D',
-        insertbackground='#FF79C6',
-        relief=FLAT
-    )
-    entry_snippet_name.pack(fill=X)
+        frame_left.pack(side=tk.LEFT, fill=tk.Y)
+        frame_middle.pack(side=tk.LEFT, fill=tk.Y)
+        frame_right.pack(side=tk.LEFT, fill=tk.BOTH)
 
-    left_mid_frame = LabelFrame(
-        frame_right,
-        text='Snippet code: ', 
-        font=('Arial', 12), 
-        foreground='#FFD71C',
-        background='#333842',
-        padx=5, pady=5,
-        relief=FLAT
-    )
-    left_mid_frame.pack(fill=X)
+        # / LEFT ------------------------------------------------------------------/
 
-    text_area = Text(
-        left_mid_frame,
-        width=60,
-        height=16,
-        font=('Consolas', 12),
-        foreground='#F8F8F2',
-        background='#16181D',
-        insertbackground='#F8F8F2',
-        pady=5, padx=5,
-        wrap=WORD,
-        relief=FLAT
-    )
-    text_area.pack()
-    text_area.bind('<Tab>', lambda event: do_tab(event, widget=text_area, tab_width=TAB_WIDTH))
+        # Scrollbars for a Listbox
+        scrollbar_y = tk.Scrollbar(frame_left, width=12)
+        scrollbar_y.pack(side=tk.RIGHT, fill=tk.Y)
+        scrollbar_x = tk.Scrollbar(frame_left, orient=tk.HORIZONTAL, width=12)
+        scrollbar_x.pack(side=tk.BOTTOM, fill=tk.X)
 
-    left_bottom_frame = Frame(
-        frame_right,
-        background='#333842', 
-        padx=5, pady=5,
-        relief=FLAT
-    )
-    left_bottom_frame.pack(fill=X)
+        # Snippets list
+        listbox_snippet = tk.Listbox(
+            frame_left,
+            width=20,
+            font=('Arial', 11),
+            yscrollcommand=scrollbar_y.set,
+            xscrollcommand=scrollbar_x.set,
+            foreground='#94D7F8',
+            background='#16181D',
+            relief=tk.FLAT
+        )
+        listbox_snippet.pack(side=tk.LEFT, fill=tk.BOTH)
 
-    btn_new = Button(
-        left_bottom_frame, 
-        text='New', 
-        width=15, 
-        font=('Verdana', 11), 
-        foreground='#F1FA8C', 
-        background='#333842', 
-        relief=GROOVE 
-    )
-    btn_new.pack(side=LEFT)
+        snippets = self.__scan_dir(self.PATH_SNIPPETS)
+        for key, value in snippets.items():
+            listbox_snippet.insert(tk.END, key.replace('.synw-snippet', ''))
 
-    btn_save = Button(
-        left_bottom_frame, 
-        text='Save', 
-        width=15, 
-        font=('Verdana', 11), 
-        foreground='#3BDB84', 
-        background='#333842', 
-        relief=GROOVE 
-    )
-    btn_save.pack(side=RIGHT)
+        # Count snippets
+        frame_left['text'] = frame_left['text'] + ' (' + str(len(snippets)) + ')'
 
-    # -------------------------------------------------------------------------/
+        # Linking scrollbars for a Listbox
+        scrollbar_y.config(command=listbox_snippet.yview)
+        scrollbar_x.config(command=listbox_snippet.xview)
+
+        # / MIDDLE ----------------------------------------------------------------/
+
+        # Buttons
+        btn_edit = tk.Button(
+            frame_middle,
+            text='Edit >>>',
+            width=10,
+            font=('Verdana', 11),
+            foreground='#E5E5E5',
+            background='#333842',
+            relief=tk.GROOVE
+        )
+        btn_edit.pack(side=tk.TOP, pady=20)
+
+        btn_help = tk.Button(
+            frame_middle,
+            text='Help?',
+            width=10,
+            font=('Verdana', 11),
+            foreground='#E5E5E5',
+            background='#333842',
+            relief=tk.GROOVE,
+            command=self.__open_help
+        )
+        btn_help.pack(side=tk.BOTTOM, pady=5)
+
+        # / RIGHT -----------------------------------------------------------------/
+
+        left_top_frame = tk.LabelFrame(
+            frame_right,
+            text='Snippet name: ',
+            font=('Verdana', 12),
+            foreground='#FFD71C',
+            background='#333842',
+            padx=5, pady=5,
+            relief=tk.FLAT
+        )
+        left_top_frame.pack(side=tk.TOP, fill=tk.X)
+
+        entry_snippet_name = tk.Entry(
+            left_top_frame,
+            width=60,
+            font=('Arial', 12),
+            foreground='#FF79C6',
+            background='#16181D',
+            insertbackground='#FF79C6',
+            relief=tk.FLAT
+        )
+        entry_snippet_name.pack(fill=tk.X)
+
+        left_mid_frame = tk.LabelFrame(
+            frame_right,
+            text='Snippet code: ',
+            font=('Arial', 12),
+            foreground='#FFD71C',
+            background='#333842',
+            padx=5, pady=5,
+            relief=tk.FLAT
+        )
+        left_mid_frame.pack(fill=tk.X)
+
+        text_area = tk.Text(
+            left_mid_frame,
+            width=60,
+            height=16,
+            font=('Consolas', 12),
+            foreground='#F8F8F2',
+            background='#16181D',
+            insertbackground='#F8F8F2',
+            pady=5, padx=5,
+            wrap=tk.WORD,
+            relief=tk.FLAT
+        )
+        text_area.pack()
+        text_area.bind('<Tab>', lambda event: self.__do_tab(event, widget=text_area, tab_width=self.TAB_WIDTH))
+
+        left_bottom_frame = tk.Frame(
+            frame_right,
+            background='#333842',
+            padx=5, pady=5,
+            relief=tk.FLAT
+        )
+        left_bottom_frame.pack(fill=tk.X)
+
+        btn_new = tk.Button(
+            left_bottom_frame,
+            text='New',
+            width=15,
+            font=('Verdana', 11),
+            foreground='#F1FA8C',
+            background='#333842',
+            relief=tk.GROOVE
+        )
+        btn_new.pack(side=tk.LEFT)
+
+        btn_save = tk.Button(
+            left_bottom_frame,
+            text='Save',
+            width=15,
+            font=('Verdana', 11),
+            foreground='#3BDB84',
+            background='#333842',
+            relief=tk.GROOVE
+        )
+        btn_save.pack(side=tk.RIGHT)
+
+    def __scan_dir(self, path='data/snippets/'):
+        """
+        Scan snippets directory
+
+        Default path - root app dir - 'data/snippets/'
+        """
+
+        folders = []  # List dirs, subdirs and files
+        filtered = {}  # Snippet names without extension
+
+        if os.path.exists(path) and os.path.isdir(path):
+            for i in os.walk(path):
+                folders.append(i)
+
+            for files in folders[0][2]:
+                if files.endswith('.synw-snippet'):
+                    filtered[files] = folders[0][0] + '/' + files
+
+        return filtered
+
+    def __do_tab(self, event=None, widget=None, tab_width=4):
+        """Replacing tab chars with spaces"""
+
+        widget.insert("insert", " " * tab_width)
+        # return 'break' so that the default behavior doesn't happen
+        return 'break'
+
+    def __open_help(self):
+        Child(app_icon=self.app_ico_base64)
+
+
+class Child(tk.Toplevel):
+    """
+    Child Window
+    """
+
+    def __init__(self, app_icon=None):
+        super().__init__(root)
+        if app_icon is not None:
+            self.tk.call('wm', 'iconphoto', self._w, tk.PhotoImage(data=app_icon))
+
+        self.init_child()
+
+    def init_child(self):
+        self.title('Snippet Syntax Help')
+        self.geometry('450x250+500+200')
+        self.resizable(False, False)
+
+        self.grab_set()
+        self.focus_set()
+
+
+
+
+
+
+
+
+
+if __name__ == '__main__':
+    root = tk.Tk()
+    root.title('Add/Edit Snippet - CudaText')
+    root.geometry('800x450+500+200')
+    root.resizable(False, False)
+    app = MainFrame(root)
+    app.pack()
+
+
     root.mainloop()
-
-# / FUNCTIONS -----------------------------------------------------------------/
-
-def scan_dir(path = 'data/snippets/'):
-    """Scan snippets directory"""
-    
-    folders = []  # List dirs, subdirs and files
-    filtered = {}  # Snippet names without extension
-    
-    if os.path.exists(path) and os.path.isdir(path):
-        for i in os.walk(path):
-            folders.append(i)
-        
-        for files in folders[0][2]:
-            if files.endswith('.synw-snippet'):
-                filtered[files] = folders[0][0] + '/' + files
-    
-    return filtered
-
-
-def do_tab(event=None, widget=None, tab_width=4):
-    """Replacing tab chars with spaces"""
-    
-    widget.insert("insert", " " * tab_width)
-    # return 'break' so that the default behavior doesn't happen
-    return 'break'
-
-
-
-if __name__ == "__main__":
-    main()
