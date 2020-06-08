@@ -2,255 +2,165 @@ import json
 import os
 import re
 import tkinter as tk
+from tkinter import ttk
+import SnippetEditor
+from IconsBase64 import Icons
 
 
-class MainFrame(tk.Frame):
-    """
-    Main Layout with Widgets
-    """
+class App:
 
-    def __init__(self, root):
-        super().__init__(root)
-
-        # App icon
-        self.app_ico_base64 = "iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAPklEQVR42mMYXODPAon/IEyGPEIBMZaQJkFYLUIQmY2O0eWp6wJsNmBiTHkUDrkxRpELhkMsUJ4SKc8LlAMAjSSh9Q+hN1gAAAAASUVORK5CYII="
-        self.tk.call('wm', 'iconphoto', root._w, tk.PhotoImage(data=self.app_ico_base64))
-        root.geometry('800x450+500+200')
-        root.resizable(False, False)
+    def __init__(self):
 
         # App config
-        self.__config = self.load_config()
+        # self.__config = self.load_config()
 
-        # Widgets
-        # --/--
+        self.root = tk.Tk()
+        self.root.title('Add/Edit Snippet - CudaText')
+        self.icons = Icons()
+        # App icon
+        self.app_ico = self.icons.snippet_orange
+        self.root.call('wm', 'iconphoto', self.root._w, self.app_ico)
 
-        self.init_main()
+        win_width = 800
+        win_heght = 475
+        x = int((self.root.winfo_screenwidth() - win_width) / 2)
+        y = int((self.root.winfo_screenheight() - win_heght) / 2)
+        self.root.wm_geometry(f'800x450+{x}+{y}')
+        # self.root.resizable(False, False)
+        self.root.minsize(width=win_width, height=win_heght)
+        self.root.maxsize(width=1200, height=700)
 
-    def init_main(self):
-        # LEFT Side
-        frame_left = tk.LabelFrame(
-            text='Snippets list: ',
-            font=('Verdana', 11),
-            foreground='#FFD71C',
-            background='#333842',
-            padx=5, pady=5,
-            relief=tk.FLAT
-        )
-        # MIDDLE Side
-        frame_middle = tk.Frame(
-            background='#333842',
-            padx=5, pady=5,
-            relief=tk.FLAT
-        )
-        # RIGHT Side
-        frame_right = tk.Frame(
-            background='#333842',
-            relief=tk.FLAT
-        )
+        # Theme Styling --------------------------------------------------------
+        self.style = ttk.Style()
+        self.style.theme_use('clam')
 
-        frame_left.pack(side=tk.LEFT, fill=tk.Y)
-        frame_middle.pack(side=tk.LEFT, fill=tk.Y)
-        frame_right.pack(side=tk.LEFT, fill=tk.BOTH)
+        # TreeFileManager ------------------------------------------------------
+        self.tree = SnippetEditor.TreeFileManager(self.root)
+        self.tree.width_tree = 250
+        self.tree.path = os.path.join(os.getcwd(), 'test_data')
 
-        # / LEFT --------------------------------------------------------------/
+        self.tree.folder_icon = self.icons.folder_orange
+        self.tree.file_icon = self.icons.file_blue
+        self.tree.folder_style = {'foreground': '#321900', 'font': ('Verdana', 12)}
+        self.tree.file_style = {'foreground': '#18313F', 'font': ('Verdana', 11)}
 
-        # Scrollbars for a Listbox
-        scrollbar_y = tk.Scrollbar(frame_left, width=12)
-        scrollbar_y.pack(side=tk.RIGHT, fill=tk.Y)
-        scrollbar_x = tk.Scrollbar(frame_left, orient=tk.HORIZONTAL, width=12)
-        # scrollbar_x.pack(side=tk.BOTTOM, fill=tk.X)
+        self.tree.show_toolbar = True
+        self.tree.pack(side='left', fill='both')
+        self.tree.create()
 
-        # Snippets list
-        listbox_snippet = tk.Listbox(
-            frame_left,
-            width=20,
-            font=('Arial', 11),
-            selectbackground='#643200',
-            yscrollcommand=scrollbar_y.set,
-            xscrollcommand=scrollbar_x.set,
-            foreground='#94D7F8',
-            background='#16181D',
-            relief=tk.FLAT
-        )
-        listbox_snippet.pack(side=tk.LEFT, fill=tk.BOTH)
+        # ----------------------------------------------------------------------
 
-        snippets = self.__scan_dir(self.__config.get('path_snippets'))
-        for key, value in snippets.items():
-            listbox_snippet.insert(tk.END, key.replace('.synw-snippet', ''))
+        self.cancel_icon = self.icons.cancel
+        self.save_icon = self.icons.save
+        self.new_icon = self.icons.add
+        # self.file_icon = self.icons.file_blue
+        self.help_icon = self.icons.help_blue
 
-        # Count snippets
-        frame_left['text'] = frame_left['text'] + ' (' + str(len(snippets)) + ')'
+        # Notebook -------------------------------------------------------------
+        self.notebook = ttk.Notebook(self.root, padding=5)
+        self.notebook.pack(fill='both', expand='yes')
 
-        # Linking scrollbars for a Listbox
-        scrollbar_y.config(command=listbox_snippet.yview)
-        scrollbar_x.config(command=listbox_snippet.xview)
+        self.tab1_frame = tk.Frame(self.root)
+        self.tab2_frame = tk.Frame(self.root)
 
-        # / MIDDLE ------------------------------------------------------------/
-
-        # Buttons
-        btn_edit = tk.Button(
-            frame_middle,
-            text='Edit >>>',
-            width=10,
-            font=('Verdana', 11),
-            foreground='#E5E5E5',
-            background='#333842',
-            relief=tk.GROOVE,
-            command=lambda: self.__edit_snippet(widget=listbox_snippet,
-                                                dict_snippets=snippets,
-                                                entry_widget=entry_snippet_name,
-                                                text_widget=text_area)
-        )
-        btn_edit.pack(side=tk.TOP, pady=20)
-
-        # Editing selected snippet on double-click
-        listbox_snippet.bind('<Double-Button-1>', lambda event: self.__edit_snippet(
-            event, widget=listbox_snippet, dict_snippets=snippets,
-            entry_widget=entry_snippet_name, text_widget=text_area))
-
-        btn_help = tk.Button(
-            frame_middle,
-            text='Help?',
-            width=10,
-            font=('Verdana', 11),
-            foreground='#E5E5E5',
-            background='#333842',
-            relief=tk.GROOVE,
-            command=self.__open_help
-        )
-        btn_help.pack(side=tk.BOTTOM, pady=5)
-
-        # / RIGHT -------------------------------------------------------------/
-
-        left_top_frame = tk.LabelFrame(
-            frame_right,
-            text='Snippet name: ',
+        frame_label_snippet = tk.LabelFrame(
+            self.tab1_frame,
+            padx=5, pady=8,
+            text='[Snippet name:]',
             font=('Verdana', 12),
-            foreground='#FFD71C',
-            background='#333842',
-            padx=5, pady=5,
-            relief=tk.FLAT
-        )
-        left_top_frame.pack(side=tk.TOP, fill=tk.X)
+            fg='#BD500C')
+        frame_label_snippet.pack(side=tk.TOP, fill=tk.X, padx=2, pady=8)
 
-        entry_snippet_name = tk.Entry(
-            left_top_frame,
+        frame_label_code = tk.LabelFrame(
+            self.tab1_frame,
+            fg='#BD500C',
+            text='[Snippet code:]',
+            padx=5, pady=5,
+            font=('Verdana', 12))
+        frame_label_code.pack(side=tk.TOP, fill=tk.BOTH, expand=tk.YES, padx=2, pady=2)
+
+        self.entry_snippet_name = tk.Entry(
+            frame_label_snippet,
+            fg='navy',
+            bg='#FAFAFA',
             width=60,
             font=('Arial', 12),
-            foreground='#FF79C6',
-            background='#16181D',
-            insertbackground='#FF79C6',
-            relief=tk.FLAT
+            relief=tk.RAISED
         )
-        entry_snippet_name.pack(fill=tk.X)
+        self.entry_snippet_name.pack(fill='x')
+        self.tree.target_caption_field_edit = self.entry_snippet_name
 
-        left_mid_frame = tk.LabelFrame(
-            frame_right,
-            text='Snippet code: ',
-            font=('Arial', 12),
-            foreground='#FFD71C',
-            background='#333842',
-            padx=5, pady=5,
-            relief=tk.FLAT
-        )
-        left_mid_frame.pack(fill=tk.X)
-
-        text_area = tk.Text(
-            left_mid_frame,
-            width=60,
-            height=16,
+        # Textarea
+        self.txt = tk.Text(
+            frame_label_code,
+            width=20, height=14,
             font=('Consolas', 12),
-            foreground='#F8F8F2',
-            background='#16181D',
+            fg='#F8F8F2', bg='#3C3F41',
             insertbackground='#F8F8F2',
             pady=5, padx=5,
             wrap=tk.WORD,
-            relief=tk.FLAT
-        )
-        text_area.pack()
-        text_area.bind('<Tab>', lambda event: self.__do_tab(event, widget=text_area,
-                                                            tab_width=self.__config.get('tab_width')))
+            relief=tk.RAISED)
+        self.txt.pack(fill='both', expand='yes', pady=5)
+        self.tree.target_textarea_field_edit = self.txt
 
-        left_bottom_frame = tk.Frame(
-            frame_right,
-            background='#333842',
-            padx=5, pady=5,
-            relief=tk.FLAT
-        )
-        left_bottom_frame.pack(fill=tk.X)
+        # Buttons panel
+        frame_buttons = tk.Frame(self.tab1_frame)
+        frame_buttons.pack(side=tk.BOTTOM, fill=tk.X, pady=2)
 
-        btn_new = tk.Button(
-            left_bottom_frame,
-            text='New',
-            width=15,
-            font=('Verdana', 11),
-            foreground='#F1FA8C',
-            background='#333842',
-            relief=tk.GROOVE,
-            command=lambda: self.__new_snippet(widget_name=entry_snippet_name,
-                                               widget_text=text_area)
-        )
-        btn_new.pack(side=tk.LEFT)
-
-        btn_save = tk.Button(
-            left_bottom_frame,
+        btn_save = ttk.Button(
+            frame_buttons,
             text='Save',
-            width=15,
-            font=('Verdana', 11),
-            foreground='#3BDB84',
-            background='#333842',
-            relief=tk.GROOVE
-        )
-        btn_save.pack(side=tk.RIGHT)
+            image=self.save_icon, compound='left')
+        btn_save.pack(side=tk.LEFT, padx=5)
 
-    def __scan_dir(self, path='data/snippets/'):
+        btn_new = ttk.Button(
+            frame_buttons,
+            text='New',
+            image=self.new_icon, compound='left')
+        btn_new.pack(side=tk.LEFT, padx=5)
+
+        btn_cancel = ttk.Button(
+            frame_buttons,
+            text='Cancel',
+            image=self.cancel_icon, compound='left',
+            command=lambda: self.root.destroy())
+        btn_cancel.pack(side=tk.RIGHT, padx=5)
+
+        self.txt_help = tk.Text(bg='lightgray', pady=5, padx=5)
+        self.txt_help.insert(tk.INSERT, "Help comming soon.....")
+        self.txt_help.configure(state='disabled')
+
+        self.notebook.add(self.tab1_frame, text='Snippet', image=self.icons.file_blue,
+                          compound='left')
+        self.notebook.add(self.txt_help, text='Syntax Help', image=self.help_icon,
+                          compound='left')
+
+        self.root.mainloop()
+
+    def load_config(self, file='config.json'):
         """
-        Scan snippets directory
-
-        Default path - root app dir - 'data/snippets/'
-        """
-
-        folders = []  # List dirs, subdirs and files
-        filtered = {}  # Snippet names without extension
-
-        if os.path.exists(path) and os.path.isdir(path):
-            for i in os.walk(path):
-                folders.append(i)
-
-            for files in folders[0][2]:
-                if files.endswith('.synw-snippet'):
-                    filtered[files] = folders[0][0] + '/' + files
-
-        return filtered
-
-    def __edit_snippet(self, *args, **kwargs):
-        """
-        Edit snippet
-
-        :param args: event=None
-        :param kwargs: widget=None, dict_snippets=None, entry_widget=None, text_widget=None
+        Open and Read JSON App Config
+        :param file:
         :return:
         """
 
-        # Индекс выделенного пункта в Listbox - первое значение кортежа
-        index = kwargs['widget'].curselection()[0]
-
-        # Значение выделенного пункта в Listbox
-        name = kwargs['widget'].get(index)
-
-        # Поиск ключа в словаре, где значение - путь к файлу сниппета; None - если нету
-        snippet = kwargs['dict_snippets'].get(name + '.synw-snippet')
-
-        # Вставка имени редактируемого сниппета
-        kwargs['entry_widget'].delete(0, tk.END)
-        kwargs['entry_widget'].insert(0, name)
-        # Если файл существует, открываем на редактирование
-        if os.path.exists(snippet) and os.path.isfile(snippet):
-            f = open(snippet, 'r')
-            f_read = f.read()
-            kwargs['text_widget'].delete(1.0, tk.END)
-            kwargs['text_widget'].insert(1.0, f_read)
+        if os.path.exists(file) and os.path.isfile(file):
+            f = open(file, 'r', encoding='utf-8')
+            raw = f.read()
             f.close()
+            parsed = re.sub(r'\n^\s*//.+$', '', raw, flags=re.MULTILINE)
+            # print(parsed)
+            return json.loads(parsed)
+
+            # with open(file, 'r', encoding='utf-8') as read_file:
+            # parsed = re.sub(r'\n^\s*//.+$', '', read_file, flags=re.MULTILINE)
+            # return json.load(read_file)
+        else:
+            # Default settings
+            return {
+                "path_snippets": ".",
+                "tab_width": 4
+            }
 
     def __new_snippet(self, widget_name=None, widget_text=None):
         # start_data = widget_name.get()
@@ -272,59 +182,6 @@ class MainFrame(tk.Frame):
         # return 'break' so that the default behavior doesn't happen
         return 'break'
 
-    def __open_help(self):
-        Child(app_icon=self.app_ico_base64)
-
-    def load_config(self, file='config.json'):
-        """
-        Open and Read JSON App Config
-        :param file:
-        :return:
-        """
-
-        if os.path.exists(file) and os.path.isfile(file):
-            f = open(file, 'r', encoding='utf-8')
-            raw = f.read()
-            f.close()
-            parsed = re.sub(r'\n^\s*//.+$', '', raw, flags=re.MULTILINE)
-            # print(parsed)
-            return json.loads(parsed)
-
-            # with open(file, 'r', encoding='utf-8') as read_file:
-            # parsed = re.sub(r'\n^\s*//.+$', '', read_file, flags=re.MULTILINE)
-            # return json.load(read_file)
-        else:
-            # Defaul settings
-            return {
-                "path_snippets": ".",
-                "tab_width": 4
-            }
-
-
-class Child(tk.Toplevel):
-    """
-    Child Window
-    """
-
-    def __init__(self, app_icon=None):
-        super().__init__(root)
-        if app_icon is not None:
-            self.tk.call('wm', 'iconphoto', self._w, tk.PhotoImage(data=app_icon))
-
-        self.init_child()
-
-    def init_child(self):
-        self.title('Snippet Syntax Help')
-        self.geometry('450x250+500+200')
-        self.resizable(False, False)
-
-        self.grab_set()
-        self.focus_set()
-
 
 if __name__ == '__main__':
-    root = tk.Tk()
-    root.title('Add/Edit Snippet - CudaText')
-    app = MainFrame(root)
-    app.pack()
-    root.mainloop()
+    app = App()
