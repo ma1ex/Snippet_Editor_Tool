@@ -3,6 +3,7 @@ import tkinter as tk
 from tkinter import ttk
 import tkinter.messagebox as mb
 from IconsBase64 import Icons
+from Tooltip import ToolTip
 
 
 class TreeFileManager(tk.Frame):
@@ -15,7 +16,8 @@ class TreeFileManager(tk.Frame):
 
         self.master = master
         # self.main_frame = self
-        self.__tree_struct_dict = {}
+
+        # self.__tree_struct_dict = {} # shadow copy
 
         # Treeview width
         self.width_tree = 200
@@ -47,7 +49,10 @@ class TreeFileManager(tk.Frame):
         self.collapse_icon = self.icons.collapse
         self.expand_icon = self.icons.expand
 
-        self.new_folder_icon = self.icons.folder_add
+        self.new_file_icon = self.icons.file_add
+        self.del_file_icon = self.icons.file_remove
+        self.new_folder_icon = self.icons.folder_add2
+        self.del_folder_icon = self.icons.folder_remove
         self.edit_icon = self.icons.edit_green_pen
         self.update_icon = self.icons.refresh_blue
 
@@ -101,17 +106,24 @@ class TreeFileManager(tk.Frame):
     def __select(self, *event):
 
         item = self.tree.selection()
+        print('item:', item)
 
         item_text = self.tree.item(item)['text']
+        print('item_text:', item_text)
         item_values = ''.join(self.tree.item(item)['values'])
         print(item_text, item_values)
+        parent_id = self.tree.parent(item)
+        parent_name = self.tree.item(parent_id)['text']
 
         if os.path.isfile(item_values):
             print('True - this file!')
 
         # print('Child: ', self.tree.get_children(item[0]))
+        print('Parent id: ', parent_id)
+        print('Parent name: ', parent_name)
 
-        return {'name': item_text, 'path': item_values}
+        return {'name': item_text, 'path': item_values, 'parent_id': parent_id,
+                'parent_name': parent_name}
 
     def _path_scandir(self, path, parent):
         """
@@ -123,13 +135,17 @@ class TreeFileManager(tk.Frame):
             for entry in p:
                 abspath = os.path.join(path, entry)
                 if entry.is_dir():
-                    parent_element = self.tree.insert(parent, 'end', text=f'[{entry.name}]', open=False,
-                                                      values=abspath.split(','), image=self.folder_icon, tags='Dirs')
-                    self.__tree_struct_dict[parent_element] = self.tree.item(parent_element)['text']
+                    # name = f'[{entry.name}]'
+                    # parent_element = self.tree.insert(parent, 'end', text=name,
+                    name = '|' + entry.name + '|'
+                    parent_element = self.tree.insert(parent, 'end', iid=name, text=name,
+                                                      open=False, values=abspath.split(','), image=self.folder_icon,
+                                                      tags='Dirs')
+                    # self.__tree_struct_dict[parent_element] = self.tree.item(parent_element)['text']
                 else:
-                    parent_element = self.tree.insert(parent, 'end', text=entry.name, open=False,
+                    parent_element = self.tree.insert(parent, 'end', iid=entry.name, text=entry.name, open=False,
                                                       values=abspath.split(','), image=self.file_icon, tags='Files')
-                    self.__tree_struct_dict[parent_element] = self.tree.item(parent_element)['text']
+                    # self.__tree_struct_dict[parent_element] = self.tree.item(parent_element)['text']
                 if entry.is_dir():
                     self._path_scandir(abspath, parent_element)
 
@@ -154,7 +170,8 @@ class TreeFileManager(tk.Frame):
                                                  'folder!\n\nSelect folder item and try again.')
             return
 
-        add_folder_dlg = ModalDialog(self.master, title='Add new folder')
+        add_folder_dlg = ModalDialog(self.master, title='Add new folder',
+                                     icon=self.icons.folder_orange)
 
         frame = tk.Frame(add_folder_dlg)
         frame.pack(expand='yes', padx=5, pady=5)
@@ -174,20 +191,32 @@ class TreeFileManager(tk.Frame):
 
         def __save():
             new_folder_name = entry_new.get()
+
+            if not new_folder_name:
+                return
+
             try:
                 os.mkdir(os.path.join(path, new_folder_name))
                 self.tree_update()
-                item = f'[{new_folder_name}]'
+                # mb.showinfo(title='Success!', message='Ok!')
+                item = f'|{new_folder_name}|'
+                self._open_parent(item)
+                self.tree.focus(item)
+                self.tree.selection_set(item)
 
-                for key, value in self.__tree_struct_dict.items():
-                    if value == item:
-                        print(f'Найдено! - {key}: {value} - ', self.tree.item(key))
-                        self._open_parent(key)
-                        self.tree.focus(key)
-                        self.tree.selection_set(key)
+                # item = f'[{new_folder_name}]'
+
+                # for key, value in self.__tree_struct_dict.items():
+                #     if value == item:
+                #         print(f'Найдено! - {key}: {value} - ', self.tree.item(key))
+                #         self._open_parent(key)
+                #         self.tree.focus(key)
+                #         self.tree.selection_set(key)
 
             except FileExistsError:
                 mb.showerror('Error!', f'Folder "{new_folder_name}" is exists!')
+                entry_new.selection_range(0, tk.END)
+                entry_new.focus_set()
                 return
 
             add_folder_dlg.destroy()
@@ -195,13 +224,43 @@ class TreeFileManager(tk.Frame):
         btn_frame = tk.Frame(frame)
         btn_frame.grid(row=2, column=0, columnspan=2, pady=5)
 
-        btn_save = ttk.Button(btn_frame, text='Save', command=__save)
+        btn_save = ttk.Button(btn_frame, text='Save', image=self.icons.save,
+                              compound='left', command=__save)
         btn_save.pack(side=tk.LEFT, padx=5)
 
-        btn_cancel = ttk.Button(btn_frame, text='Cancel', command=lambda: add_folder_dlg.destroy())
+        btn_cancel = ttk.Button(btn_frame, text='Cancel', image=self.icons.cancel,
+                              compound='left', command=add_folder_dlg.destroy)
         btn_cancel.pack(side=tk.LEFT)
 
-        add_folder_dlg.show()
+        # add_folder_dlg.show()
+
+    def _del_folder(self, path, item):
+        if not (path and os.path.isdir(path)):
+            mb.showerror(title='Error!', message='Choosed item is not a '
+                                                 'folder!\n\nSelect folder item and try again.')
+            return
+
+        # print('Parent name: ', self.tree.item(parent))
+        parent = self.tree.parent(item)
+        print('Parent name--:', self.tree.parent(item))
+
+        dir_name = os.path.basename(path)
+        question = mb.askokcancel(f'DELETE folder "{dir_name}"', 'Are you sure want to delete '
+                                                 f'"{dir_name}" folder and all its content?', icon=mb.WARNING)
+        print(question)
+
+        if question:
+            try:
+                os.rmdir(path)
+
+            except OSError as e:
+                print(f'Error! {path} : {e.strerror}')
+
+            self.tree.delete(item)
+            mb.showinfo(title='Complete!', message='Deleted successfully!')
+            self.tree.focus(parent)
+            self.tree.selection_set(parent)
+
 
     def _edit(self, *event):
 
@@ -248,11 +307,9 @@ class TreeFileManager(tk.Frame):
         execute(self.tree.get_children(self.tree_root_node))
 
     def collapse_all(self):
-
         self.__toggle_open_nodes(False)
 
     def expand_all(self):
-
         self.__toggle_open_nodes(True)
 
     def get_scrollbar(self, wrapper, vertical=False, horizontal=False):
@@ -272,8 +329,16 @@ class TreeFileManager(tk.Frame):
             menu.add_command(label='Edit snippet', image=self.edit_icon,
                              compound='left', command=self._edit)
             menu.add_separator()
+            menu.add_command(label='New snippet', image=self.new_file_icon,
+                             compound='left')
+            menu.add_command(label='Delete snippet', image=self.del_file_icon,
+                             compound='left')
+            menu.add_separator()
             menu.add_command(label='New folder', image=self.new_folder_icon,
                              compound='left', command=lambda: self._add_new_folder(self.__select()['path']))
+            menu.add_command(label='Delete folder', image=self.del_folder_icon,
+                             compound='left', command=lambda: self._del_folder(self.__select()['path'],
+                                                                               self.tree.selection()[0]))
             menu.add_separator()
             menu.add_command(label='Update', image=self.update_icon,
                              compound='left', command=self.tree_update)
@@ -300,6 +365,9 @@ class TreeFileManager(tk.Frame):
                                            command=self.expand_all)
             btn_toolbar_expand.place(x=30, y=3)
 
+            ToolTip(btn_toolbar_collapse, 'Collapse all!')
+            ToolTip(btn_toolbar_expand, 'Expand all')
+
     def _fixed_map(self, option):
         """
         Bug fix Treeview styling
@@ -325,20 +393,22 @@ class ModalDialog(tk.Toplevel):
     Modal Dialog
     """
 
-    def __init__(self, parent, title='Dialog'):
+    def __init__(self, parent, title='Dialog', icon=None):
         super().__init__(parent)
 
         self.parent = parent
-        self.icons = Icons()
-        self.dialog_icon = self.icons.folder_add
-
-        self.title(title)
-
-    def show(self):
-        self.tk.call('wm', 'iconphoto', self._w, self.dialog_icon)
         x = int((self.parent.winfo_screenwidth() - self.winfo_reqwidth()) / 2)
         y = int((self.parent.winfo_screenheight() - self.winfo_reqheight()) / 2)
         self.wm_geometry("+%d+%d" % (x, y))
         self.resizable(False, False)
+        self.transient(parent)
+
+        if icon:
+            self.tk.call('wm', 'iconphoto', self._w, icon)
+        else:
+            self.attributes('-toolwindow', True)
+
+        self.title(title)
+
         self.grab_set()
         self.focus_set()

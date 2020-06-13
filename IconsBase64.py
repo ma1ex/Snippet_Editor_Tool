@@ -184,5 +184,58 @@ class Icons:
                          'L4d6YHdm/6DMJCdSlYYODRtWATCxIYBxUmZssxE'
                          'LgYAA8RCW1+9psMAAAAASUVORK5CYII=')
 
+        self.folder_add2 = PhotoImage(
+                    data='iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAA'
+                         'f8/9hAAAAy0lEQVR4AWMYHGDvtKT/OHA9ZQYgDC'
+                         'FsADmY+gYQG2ZkGWA82y3AZI77dxBNlgH2a8Kzb'
+                         'FeG/AfR5BmwMdrGcXPsfxBNtAEqE6z91SbZxiv3'
+                         'WsTrznWfbb0+8j+Ibpkc9L91Ssh/kDxeAzRnOv/'
+                         'Tnuv+X3uO23/9xb7/zTdEgGgwHyQOkscbjRNnRf'
+                         '/vnAvCsf+zFkf+N1wTBKJBfLC43kJvf6LTwewZ0'
+                         'f81F7mCabiLSQGqc2yz1ObY/QfRZGU4ldnWAUD8'
+                         'HUQjiwMAnCsutbIop9AAAAAASUVORK5CYII=')
+
+        self.folder_remove = PhotoImage(
+                    data='iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAA'
+                         'f8/9hAAABC0lEQVR4AWMYHGDvtKT/OHA9ZQYgDC'
+                         'FsADmY+gaQGGaEDTgZ4VV4OsrnxKlIbzdk8YOt0'
+                         'f9PpAf+B8oX4DXgYnLIpWvZMf8vJAY/PxXhyQES'
+                         'A9Hn0kL/g8RB8ngNuJYd7Xu/MuMVEP8/nxDw5Hi'
+                         'IqzmIBvHvVKf/B8r7ExUGj2tzHt4pSv5/KTXsL4'
+                         'i+35BNWiBeSQkTv1+a+u9xTfZ/EL1/UgJp0Xgqz'
+                         'vv/vcKE/4/K00E0iE+cAfvrwv+fiHD/fyMt/P+N'
+                         'gpj/h3sTQDSQDxE/7Gnjize+Twe5XLyaEPj/Znr'
+                         'Yi+spoeBYANEgPkgcKH8JrwHnwzwKriUEnbiWGO'
+                         'iBLA7iA8VPAuULASEGVUk9fQqoAAAAAElFTkSuQ'
+                         'mCC')
+
+        self.file_add = PhotoImage(
+                    data='iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAA'
+                         'f8/9hAAAA7klEQVR4AWOAgYkTJ/4ngOsZsABSDL'
+                         'iJ1xCYQjxyUkB8HWQImQYgMIkGIADRBnhM2vMfi'
+                         'FHYA2+A8Wy3APM5nv9LplSSFwb2a8KzbFeG/M+f'
+                         'U0mcC9Cx/cZoG8fNsf/rZrYQZQCYVplg7a82yTb'
+                         'eakL3f9257rOt10f+D52R8l+51yIeJA6Sx+sCzZ'
+                         'ku/7Xnuv/XnuP2X3+x73/zDREgGsQHiQPlnf/hD'
+                         'QO9hd7+hssD4o1XBccbrw6ebbgm6H/Ewuz/ID5I'
+                         'HCRPdF6onNrwX3ORK5gmKzOlTMv7rzbHDkwzkAN'
+                         'UZlsHAPF3EI0sDgDoOkbAi2vy4wAAAABJRU5Erk'
+                         'Jggg==')
+
+        self.file_remove = PhotoImage(
+                    data='iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAA'
+                         'f8/9hAAABKElEQVR42sVTQ0IAURieZTcIZ2mZbd'
+                         'u2bbttPEFYZ9u2dYi+3pf5ZvJvfsOnPFB9fT1UN'
+                         'FeRkBaATYKoAkh6BkLXCfJFgCeVA0hIM4BZQw+o'
+                         'z+P/AZh0s4jvCAlCVGHzC4Apd0uzaQ+rCdGPkz7'
+                         'fYqDT0lqkFxb8Hc+n3Mx12G+srQVz1tmX3kFiaS'
+                         'uWMmOxnx6GeT+7k6aiPEwEuzKnXq1Fetp+BPDyT'
+                         'nKTsZMQiEWxTH+cHXWo+g6eq3NNN/aTg6+PsyLp'
+                         'sRLkovupbzzjYna4F++Hw9RQ0DPXdBbaMlMx4ma'
+                         'JjRBXLMf6o728BPTMJx2MrobNDa2lAAPeDlj1s8'
+                         'dSpCf49lmj3wx1uWB92sFoSZHRvItZ3Jqfw8Sav'
+                         '73Z8zpzUZ8U/fgbEmV2P/w2tn8AAAAASUVORK5C'
+                         'YII=')
+
         # self.folder_blue = PhotoImage(
         #             data=)
