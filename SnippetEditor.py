@@ -108,6 +108,9 @@ class TreeFileManager(tk.Frame):
 
         if os.path.isfile(item_values):
             print('True - this file!')
+
+        # print('Child: ', self.tree.get_children(item[0]))
+
         return {'name': item_text, 'path': item_values}
 
     def _path_scandir(self, path, parent):
@@ -235,10 +238,22 @@ class TreeFileManager(tk.Frame):
             self.tree.item(parent, open=True)
             self._open_parent(parent)
 
+    def __toggle_open_nodes(self, open=True):
+
+        def execute(item):
+            self.tree.item(item, open=open)
+            for child in self.tree.get_children(item):
+                execute(child)
+
+        execute(self.tree.get_children(self.tree_root_node))
+
     def collapse_all(self):
-        for node in self.tree.get_children(self.tree_root_node):
-            # print(node)
-            self.tree.item(node, open=False)
+
+        self.__toggle_open_nodes(False)
+
+    def expand_all(self):
+
+        self.__toggle_open_nodes(True)
 
     def get_scrollbar(self, wrapper, vertical=False, horizontal=False):
 
@@ -276,11 +291,13 @@ class TreeFileManager(tk.Frame):
                 btn_background = '#DCDAD5'
 
             btn_toolbar_collapse = tk.Button(self.tree, bg=btn_background,
-                                             image=self.collapse_icon, relief=tk.FLAT)
+                                             image=self.collapse_icon, relief=tk.FLAT,
+                                             command=self.collapse_all)
             btn_toolbar_collapse.place(x=5, y=3)
 
             btn_toolbar_expand = tk.Button(self.tree, bg=btn_background,
-                                           image=self.expand_icon, relief=tk.FLAT)
+                                           image=self.expand_icon, relief=tk.FLAT,
+                                           command=self.expand_all)
             btn_toolbar_expand.place(x=30, y=3)
 
     def _fixed_map(self, option):
